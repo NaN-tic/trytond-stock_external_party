@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-import sys
-import os
-DIR = os.path.abspath(os.path.normpath(os.path.join(__file__,
-    '..', '..', '..', '..', '..', 'trytond')))
-if os.path.isdir(DIR):
-    sys.path.insert(0, os.path.dirname(DIR))
-
 from decimal import Decimal
 import unittest
 import trytond.tests.test_tryton
@@ -65,7 +58,9 @@ class TestCase(unittest.TestCase):
             supplier, = self.location.search([('code', '=', 'SUP')])
             customer, = self.location.search([('code', '=', 'CUS')])
             storage, = self.location.search([('code', '=', 'STO')])
-            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
             currency = company.currency
             self.user.write([self.user(USER)], {
                 'main_company': company.id,
@@ -118,7 +113,7 @@ class TestCase(unittest.TestCase):
                         'party': party.id,
                         'from_location': storage.id,
                         'to_location': customer.id,
-                        'moves': [('set', [move])],
+                        'moves': [('add', [move])],
                         }])
 
             #Test that party is written to moves
@@ -145,6 +140,3 @@ def suite():
             suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
-
-if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())

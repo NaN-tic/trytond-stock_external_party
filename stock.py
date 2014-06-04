@@ -129,7 +129,7 @@ class ShipmentExternal:
         pool = Pool()
         Move = pool.get('stock.move')
         for shipment in shipments:
-            Move.write(shipment.moves, {'party_used': shipment.party})
+            Move.write(list(shipment.moves), {'party_used': shipment.party})
         super(ShipmentExternal, cls).wait(shipments)
 
 
