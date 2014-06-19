@@ -10,6 +10,8 @@ def register():
         Move,
         ShipmentExternal,
         ProductByPartyStart,
+        Period,
+        PeriodCacheParty,
         module='stock_external', type_='model')
     Pool.register(
         ProductByParty,

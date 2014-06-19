@@ -2,7 +2,7 @@
 #copyright notices and license terms.
 import datetime
 
-from trytond.model import ModelView, fields
+from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import PYSONEncoder
 from trytond.transaction import Transaction
@@ -11,7 +11,7 @@ from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
 
 __all__ = ['Party', 'Move', 'ShipmentExternal', 'ProductByPartyStart',
-    'ProductByParty']
+    'ProductByParty', 'Period', 'PeriodCacheParty']
 __metaclass__ = PoolMeta
 
 
@@ -27,19 +27,18 @@ class Party(object, StockMixin):
     def get_quantity(cls, parties, name):
         pool = Pool()
         Product = pool.get('product.product')
+        Location = pool.get('stock.location')
         transaction = Transaction()
         context = transaction.context
-        location_ids = set()
-        for party in parties:
-            if party.customer_location:
-                location_ids.add(party.customer_location.id)
-            if party.supplier_location:
-                location_ids.add(party.supplier_location.id)
+        location_ids = context.get('locations')
+        if not location_ids:
+            warehouses = Location.search([
+                    ('type', '=', 'warehouse')
+                    ])
+            location_ids = [x.id for x in warehouses]
         products = None
         if context.get('products'):
             products = Product.browse(context.get('products'))
-        #TODO: Check if we can use dest_location ids to get only moves from
-        # and to party location
         pbl = cls._get_quantity(parties, name, list(location_ids), products,
             grouping=('product', 'party'))
         return pbl
@@ -92,7 +91,9 @@ class Move:
         '''
         if not self.shipment:
             self.raise_user_error('required_shipment', self.rec_name)
-        return self.shipment.party.id
+        for name in ('customer', 'supplier', 'party'):
+            if hasattr(self.shipment, name):
+                return getattr(self.shipment, name).id
 
     @classmethod
     def location_types_to_check_party(cls):
@@ -165,7 +166,7 @@ class ProductByParty(Wizard):
 
         context = {}
         product_id = Transaction().context['active_id']
-        context['product'] = product_id
+        context['products'] = [product_id]
         if self.start.forecast_date:
             context['stock_date_end'] = self.start.forecast_date
         else:
@@ -186,3 +187,39 @@ class ProductByParty(Wizard):
         action['name'] += ' - %s (%s) @ %s' % (product.rec_name,
             product.default_uom.rec_name, date)
         return action, {}
+
+
+class Period:
+    __name__ = 'stock.period'
+    party_caches = fields.One2Many('stock.period.cache.party', 'period',
+        'Party Caches', readonly=True)
+
+    @classmethod
+    def groupings(cls):
+        return super(Period, cls).groupings() + [('product', 'party')]
+
+    @classmethod
+    def get_cache(cls, grouping):
+        pool = Pool()
+        Cache = super(Period, cls).get_cache(grouping)
+        if grouping == ('product', 'party'):
+            return pool.get('stock.period.cache.party')
+        return Cache
+
+
+class PeriodCacheParty(ModelSQL, ModelView):
+    '''
+    Stock Period Cache per Party
+
+    It is used to store cached computation of stock quantities per party.
+    '''
+    __name__ = 'stock.period.cache.party'
+    period = fields.Many2One('stock.period', 'Period', required=True,
+        readonly=True, select=True, ondelete='CASCADE')
+    location = fields.Many2One('stock.location', 'Location', required=True,
+        readonly=True, select=True, ondelete='CASCADE')
+    product = fields.Many2One('product.product', 'Product', required=True,
+        readonly=True, ondelete='CASCADE')
+    party = fields.Many2One('party.party', 'Party', readonly=True,
+        ondelete='CASCADE')
+    internal_quantity = fields.Float('Internal Quantity', readonly=True)

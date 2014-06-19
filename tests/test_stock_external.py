@@ -2,6 +2,8 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from decimal import Decimal
+import datetime
+from dateutil.relativedelta import relativedelta
 import unittest
 import trytond.tests.test_tryton
 from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT, test_view,\
@@ -25,6 +27,7 @@ class TestCase(unittest.TestCase):
         self.shipment = POOL.get('stock.shipment.external')
         self.company = POOL.get('company.company')
         self.user = POOL.get('res.user')
+        self.period = POOL.get('stock.period')
 
     def test0005views(self):
         'Test views'
@@ -89,7 +92,7 @@ class TestCase(unittest.TestCase):
 
             with transaction.set_context(products=[product.id]):
                 party = self.party(party.id)
-                self.assertEqual(party.quantity, -5.0)
+                self.assertEqual(party.quantity, 5.0)
 
             #Send products to customer another time
             move, = self.move.create([{
@@ -130,6 +133,108 @@ class TestCase(unittest.TestCase):
             with transaction.set_context(products=[product.id]):
                 party = self.party(party.id)
                 self.assertEqual(party.quantity, 0.0)
+
+    def test0020period(self):
+        'Test period'
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            unit, = self.uom.search([('name', '=', 'Unit')])
+            template, = self.template.create([{
+                        'name': 'Test period',
+                        'type': 'goods',
+                        'cost_price_method': 'fixed',
+                        'default_uom': unit.id,
+                        'list_price': Decimal(0),
+                        'cost_price': Decimal(0),
+                        }])
+            product, = self.product.create([{
+                        'template': template.id,
+                        }])
+            supplier, = self.location.search([('code', '=', 'SUP')])
+            storage, = self.location.search([('code', '=', 'STO')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
+            currency = company.currency
+            self.user.write([self.user(USER)], {
+                'main_company': company.id,
+                'company': company.id,
+                })
+
+            party1, party2 = self.party.create([{
+                        'name': 'Party 1',
+                        }, {
+                        'name': 'Party 2',
+                        }])
+
+            today = datetime.date.today()
+
+            moves = self.move.create([{
+                        'product': product.id,
+                        'party': party1.id,
+                        'uom': unit.id,
+                        'quantity': 5,
+                        'from_location': supplier.id,
+                        'to_location': storage.id,
+                        'planned_date': today - relativedelta(days=1),
+                        'effective_date': today - relativedelta(days=1),
+                        'company': company.id,
+                        'unit_price': Decimal('1'),
+                        'currency': currency.id,
+                        }, {
+                        'product': product.id,
+                        'party': party2.id,
+                        'uom': unit.id,
+                        'quantity': 10,
+                        'from_location': supplier.id,
+                        'to_location': storage.id,
+                        'planned_date': today - relativedelta(days=1),
+                        'effective_date': today - relativedelta(days=1),
+                        'company': company.id,
+                        'unit_price': Decimal('1'),
+                        'currency': currency.id,
+                        }, {
+                        'product': product.id,
+                        'party': None,
+                        'uom': unit.id,
+                        'quantity': 3,
+                        'from_location': supplier.id,
+                        'to_location': storage.id,
+                        'planned_date': today - relativedelta(days=1),
+                        'effective_date': today - relativedelta(days=1),
+                        'company': company.id,
+                        'unit_price': Decimal('1'),
+                        'currency': currency.id,
+                        }])
+            self.move.do(moves)
+
+            period, = self.period.create([{
+                        'date': today - relativedelta(days=1),
+                        'company': company.id,
+                        }])
+            self.period.close([period])
+            self.assertEqual(period.state, 'closed')
+
+            quantities = {
+                supplier: -18,
+                storage: 18,
+                }
+            for cache in period.caches:
+                self.assertEqual(cache.product, product)
+                self.assertEqual(cache.internal_quantity,
+                    quantities[cache.location])
+
+            quantities = {
+                (supplier, party1): -5,
+                (storage, party1): 5,
+                (supplier, party2): -10,
+                (storage, party2): 10,
+                (supplier, None): -3,
+                (storage, None): 3,
+                }
+            for party_cache in period.party_caches:
+                self.assertEqual(party_cache.product, product)
+                self.assertEqual(party_cache.internal_quantity,
+                    quantities[(party_cache.location, party_cache.party)])
 
 
 def suite():
