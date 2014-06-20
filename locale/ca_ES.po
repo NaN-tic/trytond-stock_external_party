@@ -1,0 +1,143 @@
+# 
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "error:stock.move:"
+msgid ""
+"Can not do Move \"%s\" because it's from party \"%s\" and you try to send it"
+" to party \"%s\"."
+msgstr ""
+"No es pot realitzar el moviment \"%s\" perquè esta relacionat amb el tercer "
+"\"%s\" i l'esteu intentant enviar al tercer \"%s\"."
+
+msgctxt "error:stock.move:"
+msgid "Move \"%s\" has a party defined, so it requires a shipment to be done."
+msgstr ""
+"El moviment \"%s\" té un tercer definit, i per tant requereix un albará per "
+"a ser realitzat."
+
+msgctxt "field:party.party,forecast_quantity:"
+msgid "Forecast Quantity"
+msgstr "Quantitat prevista"
+
+msgctxt "field:party.party,quantity:"
+msgid "Quantity"
+msgstr "Quantitat"
+
+msgctxt "field:product.by_party.start,forecast_date:"
+msgid "At Date"
+msgstr "A data"
+
+msgctxt "field:product.by_party.start,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:stock.move,party:"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "field:stock.move,party_to_check:"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "field:stock.move,party_used:"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "field:stock.period,party_caches:"
+msgid "Party Caches"
+msgstr "Precálculs de tercer"
+
+msgctxt "field:stock.period.cache.party,create_date:"
+msgid "Create Date"
+msgstr "Data de creació"
+
+msgctxt "field:stock.period.cache.party,create_uid:"
+msgid "Create User"
+msgstr "Usuari de creació"
+
+msgctxt "field:stock.period.cache.party,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:stock.period.cache.party,internal_quantity:"
+msgid "Internal Quantity"
+msgstr "Quantitat interna"
+
+msgctxt "field:stock.period.cache.party,location:"
+msgid "Location"
+msgstr "Ubicació"
+
+msgctxt "field:stock.period.cache.party,party:"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "field:stock.period.cache.party,period:"
+msgid "Period"
+msgstr "Període"
+
+msgctxt "field:stock.period.cache.party,product:"
+msgid "Product"
+msgstr "Productes"
+
+msgctxt "field:stock.period.cache.party,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:stock.period.cache.party,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:stock.period.cache.party,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "help:product.by_party.start,forecast_date:"
+msgid ""
+"Allow to compute expected stock quantities for this date.\n"
+"* An empty value is an infinite date in the future.\n"
+"* A date in the past will provide historical values."
+msgstr ""
+"Permet calcular les quantitats previstes d'estoc per a aquesta data.\n"
+"* Un valor buit és un data infinita en el futur.\n"
+"* Una data en el passat proporcionarà valors històrics."
+
+msgctxt "model:ir.action,name:act_party_quantity_tree"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "model:ir.action,name:wizard_product_by_party"
+msgid "Product By Party"
+msgstr "Producte per tercer"
+
+msgctxt "model:product.by_party.start,name:"
+msgid "Product by Party"
+msgstr "Producte per tercer"
+
+msgctxt "model:stock.period.cache.party,name:"
+msgid "Stock Period Cache per Party"
+msgstr "Estoc precalculat de periode per tercer"
+
+msgctxt "view:party.party:"
+msgid "Party Quantity"
+msgstr "Quantitat del tercer"
+
+msgctxt "view:product.by_party.start:"
+msgid "Product by Party"
+msgstr "Producte per Tercer"
+
+msgctxt "view:stock.period.cache.party:"
+msgid "Period Lot Cache"
+msgstr "Període d'estoc precalculat "
+
+msgctxt "view:stock.period.cache.party:"
+msgid "Period Lot Caches"
+msgstr "Períodes d'estoc precalculat "
+
+msgctxt "wizard_button:product.by_party,start,end:"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+msgctxt "wizard_button:product.by_party,start,open:"
+msgid "Open"
+msgstr "Obre"
