@@ -12,6 +12,8 @@ def register():
         ProductByPartyStart,
         Period,
         PeriodCacheParty,
+        Inventory,
+        InventoryLine,
         module='stock_external', type_='model')
     Pool.register(
         ProductByParty,

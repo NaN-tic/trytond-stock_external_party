@@ -28,6 +28,7 @@ class TestCase(unittest.TestCase):
         self.company = POOL.get('company.company')
         self.user = POOL.get('res.user')
         self.period = POOL.get('stock.period')
+        self.inventory = POOL.get('stock.inventory')
 
     def test0005views(self):
         'Test views'
@@ -235,6 +236,70 @@ class TestCase(unittest.TestCase):
                 self.assertEqual(party_cache.product, product)
                 self.assertEqual(party_cache.internal_quantity,
                     quantities[(party_cache.location, party_cache.party)])
+
+    def test0030inventory(self):
+        'Test inventory'
+        with Transaction().start(DB_NAME, USER,
+                context=CONTEXT) as transaction:
+            unit, = self.uom.search([('name', '=', 'Unit')])
+            template, = self.template.create([{
+                        'name': 'Test period',
+                        'type': 'goods',
+                        'cost_price_method': 'fixed',
+                        'default_uom': unit.id,
+                        'list_price': Decimal(0),
+                        'cost_price': Decimal(0),
+                        }])
+            product, = self.product.create([{
+                        'template': template.id,
+                        }])
+            lost_found, = self.location.search([('type', '=', 'lost_found')])
+            storage, = self.location.search([('code', '=', 'STO')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
+            self.user.write([self.user(USER)], {
+                'main_company': company.id,
+                'company': company.id,
+                })
+
+            party, = self.party.create([{
+                        'name': 'Party',
+                        }])
+
+            with transaction.set_context(products=[product.id]):
+                party = self.party(party.id)
+                self.assertEqual(party.quantity, 0.0)
+
+            inventory, = self.inventory.create([{
+                        'company': company.id,
+                        'location': storage.id,
+                        'lost_found': lost_found.id,
+                        'date': datetime.date.today(),
+                        'lines': [('create', [{
+                                        'product': product.id,
+                                        'party': party.id,
+                                        'quantity': 5.0,
+                                        'uom': unit.id,
+                                        }])],
+                        }])
+            self.inventory.confirm([inventory])
+
+            with transaction.set_context(products=[product.id]):
+                party = self.party(party.id)
+                self.assertEqual(party.quantity, 5.0)
+
+            inventory, = self.inventory.create([{
+                        'company': company.id,
+                        'location': storage.id,
+                        'lost_found': lost_found.id,
+                        'date': datetime.date.today(),
+                        }])
+            self.inventory.complete_lines([inventory])
+            line, = inventory.lines
+            self.assertEqual(line.product, product)
+            self.assertEqual(line.party, party)
+            self.assertEqual(line.quantity, 5.0)
 
 
 def suite():

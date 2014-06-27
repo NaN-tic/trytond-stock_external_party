@@ -1,6 +1,7 @@
 #The COPYRIGHT file at the top level of this repository contains the full
 #copyright notices and license terms.
 import datetime
+from collections import defaultdict
 
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
@@ -11,7 +12,8 @@ from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
 
 __all__ = ['Party', 'Move', 'ShipmentExternal', 'ProductByPartyStart',
-    'ProductByParty', 'Period', 'PeriodCacheParty']
+    'ProductByParty', 'Period', 'PeriodCacheParty', 'Inventory',
+    'InventoryLine']
 __metaclass__ = PoolMeta
 
 
@@ -124,6 +126,7 @@ class ShipmentExternal:
         Move = pool.get('stock.move')
         moves = list(m for s in shipments for m in s.moves)
         Move.write(moves, {'party_used': None})
+        super(ShipmentExternal, cls).draft(shipments)
 
     @classmethod
     def wait(cls, shipments):
@@ -223,3 +226,88 @@ class PeriodCacheParty(ModelSQL, ModelView):
     party = fields.Many2One('party.party', 'Party', readonly=True,
         ondelete='CASCADE')
     internal_quantity = fields.Float('Internal Quantity', readonly=True)
+
+
+class Inventory:
+    __name__ = 'stock.inventory'
+
+
+    @classmethod
+    def complete_lines(cls, inventories):
+        pool = Pool()
+        Product = pool.get('product.product')
+        Line = pool.get('stock.inventory.line')
+
+        super(Inventory, cls).complete_lines(inventories)
+
+        # Create and/or update lines with product that are from a party.
+        to_create = []
+        to_write = []
+        for inventory in inventories:
+            product2lines = defaultdict(list)
+            for line in inventory.lines:
+                product2lines[line.product.id].append(line)
+            if product2lines:
+                with Transaction().set_context(stock_date_end=inventory.date):
+                    pbl = Product.products_by_location([inventory.location.id],
+                        product_ids=product2lines.keys(),
+                        grouping=('product', 'party'))
+                product_qty = defaultdict(dict)
+                for (location_id, product_id, party_id), quantity \
+                        in pbl.iteritems():
+                    product_qty[product_id][party_id] = quantity
+
+                products = Product.browse(product_qty.keys())
+                product2uom = dict((p.id, p.default_uom.id) for p in products)
+
+                for product_id, lines in product2lines.iteritems():
+                    quantities = product_qty[product_id]
+                    uom_id = product2uom[product_id]
+                    for line in lines:
+                        party_id = line.party.id if line.party else None
+                        if party_id in quantities:
+                            quantity = quantities.pop(party_id)
+                        elif party_id is None and quantities:
+                            party_id = quantities.keys()[0]
+                            quantity = quantities.pop(party_id)
+                        else:
+                            party_id = None
+                            quantity = 0.0
+
+                        values = line.update_values4complete(quantity, uom_id)
+                        if (values or party_id != (line.party.id
+                                    if line.party else None)):
+                            values['party'] = party_id
+                            to_write.extend(([line], values))
+                    if quantities:
+                        for party_id, quantity in quantities.iteritems():
+                            values = Line.create_values4complete(product_id,
+                                inventory, quantity, uom_id)
+                            values['party'] = party_id
+                            to_create.append(values)
+        if to_create:
+            Line.create(to_create)
+        if to_write:
+            Line.write(*to_write)
+
+
+class InventoryLine:
+    __name__ = 'stock.inventory.line'
+    party = fields.Many2One('party.party', 'Party')
+
+    def get_rec_name(self, name):
+        rec_name = super(InventoryLine, self).get_rec_name(name)
+        if self.party:
+            rec_name += ' - %s' % self.party.rec_name
+        return rec_name
+
+    @property
+    def unique_key(self):
+        return super(InventoryLine, self).unique_key + (self.party,)
+
+    def get_move(self):
+        move = super(InventoryLine, self).get_move()
+        if move:
+            if self.party:
+                move.party_used = self.party
+        return move

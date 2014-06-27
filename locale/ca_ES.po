@@ -32,6 +32,10 @@ msgctxt "field:product.by_party.start,id:"
 msgid "ID"
 msgstr "Identificador"
 
+msgctxt "field:stock.inventory.line,party:"
+msgid "Party"
+msgstr "Tercer"
+
 msgctxt "field:stock.move,party:"
 msgid "Party"
 msgstr "Tercer"
@@ -129,10 +133,6 @@ msgstr "Producte per Tercer"
 msgctxt "view:stock.period.cache.party:"
 msgid "Period Lot Cache"
 msgstr "Període d'estoc precalculat "
-
-msgctxt "view:stock.period.cache.party:"
-msgid "Period Lot Caches"
-msgstr "Períodes d'estoc precalculat "
 
 msgctxt "wizard_button:product.by_party,start,end:"
 msgid "Cancel"
