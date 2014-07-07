@@ -113,7 +113,8 @@ class Move:
                     and move.party_used != move.party_to_check):
                 cls.raise_user_error('diferent_party', (move.rec_name,
                         move.party_used.rec_name,
-                        move.shipment.party.rec_name))
+                        move.party_to_check.rec_name
+                            if move.party_to_check else 'none'))
         super(Move, cls).do(moves)
 
 
@@ -230,7 +231,6 @@ class PeriodCacheParty(ModelSQL, ModelView):
 
 class Inventory:
     __name__ = 'stock.inventory'
-
 
     @classmethod
     def complete_lines(cls, inventories):
