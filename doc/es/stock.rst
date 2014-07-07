@@ -58,7 +58,7 @@ recepción, y en el segundo estaremos realizando una recepción. Una vez
 rellenada esta información deberemos introducir los movimientos que queremos
 realizar y seguir con los pasos del albarán.
 
-.. |menu_shipment_external| tryref:: stock_external_shipment.menu_shipment_external_form/complete_name
+.. |menu_shipment_external| tryref:: stock_external.menu_shipment_external_form/complete_name
 .. |party| field:: stock.shipment.external/party
 
 .. note:: El estado esperando solo tiene sentido cuando realizamos envíos de

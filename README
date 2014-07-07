@@ -1,6 +1,12 @@
 
 This Module runs with the Tryton application platform.
 
+This module is developed and tested over a Tryton server and core modules
+patched with patches from `trytond-patches project`_ (take care with the
+branches). Maybe these patches are required for the module to work.
+
+.. _trytond-patches project: https://bitbucket.org/nantic/trytond-patches
+
 Installing
 ----------
 
@@ -14,7 +20,7 @@ questions on the NaN·tic bug tracker, mailing list,
 wiki or IRC channel:
 
 *  http://doc.tryton-erp.es/
-*  http://bitbucket.org/nantic/trytond-stock_external
+*  http://bitbucket.org/nantic/trytond-stock_external_party
 *  http://groups.tryton.org/
 *  http://wiki.tryton.org/
 *  irc://irc.freenode.net/tryton

@@ -1,5 +1,5 @@
-#The COPYRIGHT file at the top level of this repository contains the full
-#copyright notices and license terms.
+# The COPYRIGHT file at the top level of this repository contains the full
+# copyright notices and license terms.
 import datetime
 from collections import defaultdict
 
@@ -156,11 +156,11 @@ class ProductByParty(Wizard):
     'Product by Party'
     __name__ = 'product.by_party'
     start = StateView('product.by_party.start',
-        'stock_external.product_by_party_start_view_form', [
+        'stock_external_party.product_by_party_start_view_form', [
             Button('Cancel', 'end', 'tryton-cancel'),
             Button('Open', 'open', 'tryton-ok', default=True),
             ])
-    open = StateAction('stock_external.act_party_quantity_tree')
+    open = StateAction('stock_external_party.act_party_quantity_tree')
 
     def do_open(self, action):
         pool = Pool()
@@ -253,8 +253,7 @@ class Inventory:
                         product_ids=product2lines.keys(),
                         grouping=('product', 'party'))
                 product_qty = defaultdict(dict)
-                for (location_id, product_id, party_id), quantity \
-                        in pbl.iteritems():
+                for (_, product_id, party_id), quantity in pbl.iteritems():
                     product_qty[product_id][party_id] = quantity
 
                 products = Product.browse(product_qty.keys())

@@ -6,7 +6,7 @@ import re
 import os
 import ConfigParser
 
-MODULE = 'stock_external'
+MODULE = 'stock_external_party'
 PREFIX = 'nantic'
 MODULE2PREFIX = {}
 

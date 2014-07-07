@@ -3,7 +3,7 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
-
+        <!-- party.party -->
         <record model="ir.ui.view" id="party_quantity_view_tree">
             <field name="model">party.party</field>
             <field name="type">tree</field>
@@ -16,7 +16,6 @@
             <field name="res_model">party.party</field>
             <field name="window_name" eval="True"/>
         </record>
-
         <record model="ir.action.act_window.view"
                 id="act_party_quantity_tree_view">
             <field name="sequence" eval="10"/>
@@ -24,6 +23,7 @@
             <field name="act_window" ref="act_party_quantity_tree"/>
         </record>
 
+        <!-- product.by_party -->
         <record model="ir.action.wizard" id="wizard_product_by_party">
             <field name="name">Product By Party</field>
             <field name="wiz_name">product.by_party</field>
@@ -46,6 +46,7 @@
             <field name="name">product_by_party_start_form</field>
         </record>
 
+        <!-- stock.period.cache.party -->
         <record model="ir.ui.view" id="period_cache_party_view_form">
             <field name="model">stock.period.cache.party</field>
             <field name="type">form</field>
@@ -65,6 +66,7 @@
             <field name="perm_create" eval="False"/>
             <field name="perm_delete" eval="False"/>
         </record>
+
         <record model="ir.model.access" id="access_period_cache_party_stock">
             <field name="model"
                 search="[('model', '=', 'stock.period.cache.party')]"/>
@@ -74,6 +76,7 @@
             <field name="perm_create" eval="False"/>
             <field name="perm_delete" eval="False"/>
         </record>
+
         <record model="ir.model.access" id="access_period_cache_party_admin">
             <field name="model"
                 search="[('model', '=', 'stock.period.cache.party')]"/>
@@ -84,6 +87,7 @@
             <field name="perm_delete" eval="True"/>
         </record>
 
+        <!-- stock.inventory.line -->
         <record model="ir.ui.view" id="inventory_line_view_form">
             <field name="model">stock.inventory.line</field>
             <field name="inherit" ref="stock.inventory_line_view_form"/>
@@ -95,6 +99,5 @@
             <field name="inherit" ref="stock.inventory_line_view_tree"/>
             <field name="name">inventory_line_tree</field>
         </record>
-
     </data>
 </tryton>

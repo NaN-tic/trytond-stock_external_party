@@ -16,7 +16,7 @@ class TestCase(unittest.TestCase):
     'Test module'
 
     def setUp(self):
-        trytond.tests.test_tryton.install_module('stock_external')
+        trytond.tests.test_tryton.install_module('stock_external_party')
         self.template = POOL.get('product.template')
         self.product = POOL.get('product.product')
         self.party = POOL.get('party.party')
@@ -32,7 +32,7 @@ class TestCase(unittest.TestCase):
 
     def test0005views(self):
         'Test views'
-        test_view('stock_external')
+        test_view('stock_external_party')
 
     def test0006depends(self):
         'Test depends'

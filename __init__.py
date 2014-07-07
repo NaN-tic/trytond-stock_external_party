@@ -14,7 +14,7 @@ def register():
         PeriodCacheParty,
         Inventory,
         InventoryLine,
-        module='stock_external', type_='model')
+        module='stock_external_party', type_='model')
     Pool.register(
         ProductByParty,
-        module='stock_external', type_='wizard')
+        module='stock_external_party', type_='wizard')
