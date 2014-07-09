@@ -106,16 +106,29 @@ class Move:
         return ['customer', 'supplier']
 
     @classmethod
-    def do(cls, moves):
-        types_to_check = cls.location_types_to_check_party()
+    def assign_try(cls, moves, with_childs=True, grouping=('product',)):
         for move in moves:
-            if (move.party_used and move.to_location.type in types_to_check
-                    and move.party_used != move.party_to_check):
-                cls.raise_user_error('diferent_party', (move.rec_name,
-                        move.party_used.rec_name,
-                        move.party_to_check.rec_name
-                            if move.party_to_check else 'none'))
+            move._check_party()
+        return super(Move, cls).assign_try(moves, with_childs=with_childs,
+            grouping=grouping)
+
+    @classmethod
+    def do(cls, moves):
+        for move in moves:
+            move._check_party()
         super(Move, cls).do(moves)
+
+    def _check_party(self):
+        types_to_check = self.location_types_to_check_party()
+        warehouse_output = (self.shipment.warehouse_output if self.shipment
+            else None)
+        if (self.party_used and (self.to_location.type in types_to_check or
+                    self.shipment and self.from_location == warehouse_output)
+                and self.party_used != self.party_to_check):
+            cls.raise_user_error('diferent_party', (self.rec_name,
+                    self.party_used.rec_name,
+                    self.party_to_check.rec_name
+                        if self.party_to_check else 'none'))
 
 
 class ShipmentExternal:
