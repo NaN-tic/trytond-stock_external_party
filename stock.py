@@ -11,9 +11,10 @@ from trytond.wizard import Wizard, StateView, StateAction, Button
 from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
 
-__all__ = ['Party', 'Move', 'ShipmentExternal', 'ProductByPartyStart',
-    'ProductByParty', 'Period', 'PeriodCacheParty', 'Inventory',
-    'InventoryLine']
+__all__ = ['Party', 'Move', 'ShipmentOut', 'ShipmentExternal',
+    'ProductByPartyStart', 'ProductByParty',
+    'Period', 'PeriodCacheParty',
+    'Inventory', 'InventoryLine']
 __metaclass__ = PoolMeta
 
 
@@ -120,15 +121,25 @@ class Move:
 
     def _check_party(self):
         types_to_check = self.location_types_to_check_party()
-        warehouse_output = (self.shipment.warehouse_output if self.shipment
-            else None)
+        wh_output = (getattr(self.shipment, 'warehouse_output', None)
+            if self.shipment else None)
         if (self.party_used and (self.to_location.type in types_to_check or
-                    self.shipment and self.from_location == warehouse_output)
+                    wh_output and self.to_location == wh_output)
                 and self.party_used != self.party_to_check):
-            cls.raise_user_error('diferent_party', (self.rec_name,
+            self.raise_user_error('diferent_party', (self.rec_name,
                     self.party_used.rec_name,
                     self.party_to_check.rec_name
                         if self.party_to_check else 'none'))
+
+
+class ShipmentOut:
+    __name__ = 'stock.shipment.out'
+
+    def _get_inventory_move(self, move):
+        inv_move = super(ShipmentOut, self)._get_inventory_move(move)
+        if move.party:
+            inv_move.party = move.party
+        return inv_move
 
 
 class ShipmentExternal:

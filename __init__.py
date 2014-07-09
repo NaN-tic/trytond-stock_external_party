@@ -8,6 +8,7 @@ def register():
     Pool.register(
         Party,
         Move,
+        ShipmentOut,
         ShipmentExternal,
         ProductByPartyStart,
         Period,
