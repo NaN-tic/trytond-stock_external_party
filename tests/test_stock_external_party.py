@@ -10,6 +10,7 @@ from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT, test_view,\
     test_depends
 from trytond.transaction import Transaction
 from trytond.exceptions import UserError
+from mock import Mock
 
 
 class TestCase(unittest.TestCase):
@@ -29,6 +30,7 @@ class TestCase(unittest.TestCase):
         self.user = POOL.get('res.user')
         self.period = POOL.get('stock.period')
         self.inventory = POOL.get('stock.inventory')
+        self.move.check_origin_types = Mock(return_value=set())
 
     def test0005views(self):
         'Test views'
