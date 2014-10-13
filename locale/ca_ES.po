@@ -54,11 +54,11 @@ msgstr "Precálculs de tercer"
 
 msgctxt "field:stock.period.cache.party,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:stock.period.cache.party,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:stock.period.cache.party,id:"
 msgid "ID"

@@ -256,6 +256,10 @@ class PeriodCacheParty(ModelSQL, ModelView):
 class Inventory:
     __name__ = 'stock.inventory'
 
+    @staticmethod
+    def grouping():
+        return ('product', 'party')
+
     @classmethod
     def complete_lines(cls, inventories):
         pool = Pool()
@@ -263,6 +267,17 @@ class Inventory:
         Line = pool.get('stock.inventory.line')
 
         super(Inventory, cls).complete_lines(inventories)
+
+        grouping = cls.grouping()
+
+        def get_subkey(line):
+            subkey = []
+            for fname in grouping[1:]:
+                fvalue = getattr(line, fname, None)
+                if fvalue:
+                    fvalue = fvalue.id
+                subkey.append(fvalue)
+            return tuple(subkey)
 
         # Create and/or update lines with product that are from a party.
         to_create = []
@@ -275,10 +290,12 @@ class Inventory:
                 with Transaction().set_context(stock_date_end=inventory.date):
                     pbl = Product.products_by_location([inventory.location.id],
                         product_ids=product2lines.keys(),
-                        grouping=('product', 'party'))
+                        grouping=grouping)
                 product_qty = defaultdict(dict)
-                for (_, product_id, party_id), quantity in pbl.iteritems():
-                    product_qty[product_id][party_id] = quantity
+                for key, quantity in pbl.iteritems():
+                    product_id = key[1]
+                    subkey = key[2:]
+                    product_qty[product_id][subkey] = quantity
 
                 products = Product.browse(product_qty.keys())
                 product2uom = dict((p.id, p.default_uom.id) for p in products)
@@ -287,26 +304,29 @@ class Inventory:
                     quantities = product_qty[product_id]
                     uom_id = product2uom[product_id]
                     for line in lines:
-                        party_id = line.party.id if line.party else None
-                        if party_id in quantities:
-                            quantity = quantities.pop(party_id)
-                        elif party_id is None and quantities:
-                            party_id = quantities.keys()[0]
-                            quantity = quantities.pop(party_id)
+                        subkey = get_subkey(line)
+                        force_update = False
+                        if subkey in quantities:
+                            quantity = quantities.pop(subkey)
+                        elif all(k is None for k in subkey) and quantities:
+                            subkey = quantities.keys()[0]
+                            quantity = quantities.pop(subkey)
+                            force_update = True
                         else:
-                            party_id = None
                             quantity = 0.0
+                            force_update = True
 
                         values = line.update_values4complete(quantity, uom_id)
-                        if (values or party_id != (line.party.id
-                                    if line.party else None)):
-                            values['party'] = party_id
+                        if (values or force_update):
+                            for i, fname in enumerate(grouping[1:]):
+                                values[fname] = subkey[i]
                             to_write.extend(([line], values))
                     if quantities:
-                        for party_id, quantity in quantities.iteritems():
+                        for subkey, quantity in quantities.iteritems():
                             values = Line.create_values4complete(product_id,
                                 inventory, quantity, uom_id)
-                            values['party'] = party_id
+                            for i, fname in enumerate(grouping[1:]):
+                                values[fname] = subkey[i]
                             to_create.append(values)
         if to_create:
             Line.create(to_create)
