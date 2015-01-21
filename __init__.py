@@ -7,6 +7,8 @@ from .stock import *
 def register():
     Pool.register(
         Party,
+        Product,
+        Location,
         Move,
         ShipmentOut,
         ShipmentExternal,

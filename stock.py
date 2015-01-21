@@ -2,6 +2,7 @@
 # copyright notices and license terms.
 import datetime
 from collections import defaultdict
+from sql import Union, Select, Table, Null
 
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
@@ -11,7 +12,8 @@ from trytond.wizard import Wizard, StateView, StateAction, Button
 from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
 
-__all__ = ['Party', 'Move', 'ShipmentOut', 'ShipmentExternal',
+__all__ = ['Party', 'Product', 'Location',
+    'Move', 'ShipmentOut', 'ShipmentExternal',
     'ProductByPartyStart', 'ProductByParty',
     'Period', 'PeriodCacheParty',
     'Inventory', 'InventoryLine']
@@ -51,6 +53,24 @@ class Party(object, StockMixin):
         location_ids = Transaction().context.get('locations')
         return cls._search_quantity(name, location_ids, domain,
             grouping=('product', 'party_used'))
+
+
+class Product:
+    __name__ = 'product.product'
+
+    @classmethod
+    def get_cost_value(cls, products, name):
+        with Transaction().set_context(exclude_party_quantities=True):
+            return super(Product, cls).get_cost_value(products, name)
+
+
+class Location:
+    __name__ = 'stock.location'
+
+    @classmethod
+    def get_cost_value(cls, locations, name):
+        with Transaction().set_context(exclude_party_quantities=True):
+            return super(Location, cls).get_cost_value(locations, name)
 
 
 class Move:
@@ -130,6 +150,62 @@ class Move:
                     self.party_used.rec_name,
                     self.party_to_check.rec_name
                         if self.party_to_check else 'none'))
+
+    @classmethod
+    def compute_quantities_query(cls, location_ids, with_childs=False,
+            grouping=('product',), grouping_filter=None):
+        pool = Pool()
+        Date = pool.get('ir.date')
+        Lot = pool.get('stock.lot')
+
+        context = Transaction().context
+
+        new_grouping = grouping[:]
+        new_grouping_filter = (grouping_filter[:]
+            if grouping_filter is not None else None)
+        if 'party' not in grouping and context.get('exclude_party_quantities'):
+            new_grouping = grouping[:] + ('party',)
+            if grouping_filter is not None:
+                new_grouping_filter = grouping_filter[:] + (None, )
+
+        query = super(Move, cls).compute_quantities_query(
+            location_ids, with_childs=with_childs, grouping=new_grouping,
+            grouping_filter=new_grouping_filter)
+        return query
+
+    @classmethod
+    def compute_quantities(cls, query, location_ids, with_childs=False,
+            grouping=('product',), grouping_filter=None):
+
+        context = Transaction().context
+
+        new_grouping = grouping[:]
+        new_grouping_filter = (grouping_filter[:]
+            if grouping_filter is not None else None)
+        remove_party_grouping = False
+        if 'party' not in grouping and context.get('exclude_party_quantities'):
+            new_grouping = grouping[:] + ('party',)
+            if grouping_filter is not None:
+                new_grouping_filter = grouping_filter[:] + (None, )
+            remove_party_grouping = True
+
+        quantities = super(Move, cls).compute_quantities(query, location_ids,
+            with_childs=with_childs, grouping=new_grouping,
+            grouping_filter=new_grouping_filter)
+
+        if remove_party_grouping:
+            new_quantities = {}
+            for key, quantity in quantities.iteritems():
+                if key[-1] is not None:
+                    # party quantity. ignore
+                    continue
+                parent_key = ()
+                for key_item in key[:-2]:
+                    parent_key = parent_key + (key_item, )
+                    new_quantities.setdefault(parent_key, {})
+                new_quantities[key[:-1]] = quantity
+            quantities = new_quantities
+        return quantities
 
 
 class ShipmentOut:
