@@ -3,6 +3,13 @@
      copyright notices and license terms. -->
 <tryton>
     <data>
+        <!-- stock.move -->
+        <record model="ir.ui.view" id="stock_move_view_tree">
+            <field name="model">stock.move</field>
+            <field name="inherit" ref="stock.move_view_tree"/>
+            <field name="name">stock_move_tree</field>
+        </record>
+
         <!-- party.party -->
         <record model="ir.ui.view" id="party_quantity_view_tree">
             <field name="model">party.party</field>
