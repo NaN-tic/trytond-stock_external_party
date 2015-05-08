@@ -2,8 +2,6 @@
 # copyright notices and license terms.
 import datetime
 from collections import defaultdict
-from sql import Union, Select, Table, Null
-
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import PYSONEncoder
@@ -154,10 +152,6 @@ class Move:
     @classmethod
     def compute_quantities_query(cls, location_ids, with_childs=False,
             grouping=('product',), grouping_filter=None):
-        pool = Pool()
-        Date = pool.get('ir.date')
-        Lot = pool.get('stock.lot')
-
         context = Transaction().context
 
         new_grouping = grouping[:]
