@@ -75,8 +75,9 @@ class Move:
     __name__ = 'stock.move'
     party = fields.Many2One('party.party', 'Party')
     party_used = fields.Function(fields.Many2One('party.party', 'Party',
-        states=STATES, depends=DEPENDS), 'get_party_used',
-        setter='set_party_used', searcher='search_party_used')
+            states=STATES, depends=DEPENDS),
+        'on_change_with_party_used', setter='set_party_used',
+            searcher='search_party_used')
     party_to_check = fields.Function(fields.Many2One('party.party', 'Party'),
         'get_party_to_check')
 
@@ -90,7 +91,8 @@ class Move:
                     'from party "%s" and you try to send it to party "%s".'),
                 })
 
-    def get_party_used(self, name):
+    @fields.depends('party')
+    def on_change_with_party_used(self, name=None):
         if self.party:
             return self.party.id
 
