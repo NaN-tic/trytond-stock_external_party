@@ -2,7 +2,7 @@
 
 
 * **Producto por tercero**: Permite consultar la cantidad disponible de
-  un producto en función del tercero que es propetario.
+  un producto en función del tercero que es propietario.
 
 
 #:before:stock/stock:paragraph:product-quantity#
@@ -14,7 +14,7 @@ cantidades, y abriendo la opción **Producto por tercero** que encontraremos
 en la Flecha verde de la barra de acciones. Hay que tener en cuenta que las
 cantidades positivas representan que el producto es propiedad del tercero y
 lo tenemos en nuestro almacén y las cantidades negativas representan que
-nuestros productos estan en el almacén del tercero.
+nuestros productos están en el almacén del tercero.
 
 .. |menu_product_form| tryref:: product.menu_product/complete_name
 
