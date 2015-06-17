@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/notebook/page[@id='general']/field[@name='cost_price_method']"
+            position="after">
+        <label name="may_belong_to_party"/>
+        <field name="may_belong_to_party"/>
+    </xpath>
+    <xpath expr="/form/notebook/page[@id='general']" position="after">
+        <page name="external_owners">
+            <field name="external_owners" colspan="4"/>
+        </page>
+    </xpath>
+</data>

@@ -1,3 +1,6 @@
+* Allow to change the party related to move
+* Add may_belong_to_party boolean field to product template and relation to
+  posible owners
 * Adapt inventory and location to use grouping
 * Exclude party quantities from Product/Location cost value
 
