@@ -70,6 +70,16 @@ class Location:
         with Transaction().set_context(exclude_party_quantities=True):
             return super(Location, cls).get_cost_value(locations, name)
 
+    @classmethod
+    def _quantity_grouping_and_key(cls):
+        grouping, key = super(Location, cls)._quantity_grouping_and_key()
+
+        party_id = Transaction().context.get('party')
+        if party_id:
+            grouping = grouping + ('party',)
+            key = key + (party_id,)
+        return grouping, key
+
 
 class Move:
     __name__ = 'stock.move'
@@ -328,82 +338,9 @@ class PeriodCacheParty(ModelSQL, ModelView):
 class Inventory:
     __name__ = 'stock.inventory'
 
-    @staticmethod
-    def grouping():
-        return ('product', 'party')
-
     @classmethod
-    def complete_lines(cls, inventories):
-        pool = Pool()
-        Product = pool.get('product.product')
-        Line = pool.get('stock.inventory.line')
-
-        super(Inventory, cls).complete_lines(inventories)
-
-        grouping = cls.grouping()
-
-        def get_subkey(line):
-            subkey = []
-            for fname in grouping[1:]:
-                fvalue = getattr(line, fname, None)
-                if fvalue:
-                    fvalue = fvalue.id
-                subkey.append(fvalue)
-            return tuple(subkey)
-
-        # Create and/or update lines with product that are from a party.
-        to_create = []
-        to_write = []
-        for inventory in inventories:
-            product2lines = defaultdict(list)
-            for line in inventory.lines:
-                product2lines[line.product.id].append(line)
-            if product2lines:
-                with Transaction().set_context(stock_date_end=inventory.date):
-                    pbl = Product.products_by_location([inventory.location.id],
-                        product_ids=product2lines.keys(),
-                        grouping=grouping)
-                product_qty = defaultdict(dict)
-                for key, quantity in pbl.iteritems():
-                    product_id = key[1]
-                    subkey = key[2:]
-                    product_qty[product_id][subkey] = quantity
-
-                products = Product.browse(product_qty.keys())
-                product2uom = dict((p.id, p.default_uom.id) for p in products)
-
-                for product_id, lines in product2lines.iteritems():
-                    quantities = product_qty[product_id]
-                    uom_id = product2uom[product_id]
-                    for line in lines:
-                        subkey = get_subkey(line)
-                        force_update = False
-                        if subkey in quantities:
-                            quantity = quantities.pop(subkey)
-                        elif all(k is None for k in subkey) and quantities:
-                            subkey = quantities.keys()[0]
-                            quantity = quantities.pop(subkey)
-                            force_update = True
-                        else:
-                            quantity = 0.0
-                            force_update = True
-
-                        values = line.update_values4complete(quantity, uom_id)
-                        if (values or force_update):
-                            for i, fname in enumerate(grouping[1:]):
-                                values[fname] = subkey[i]
-                            to_write.extend(([line], values))
-                    if quantities:
-                        for subkey, quantity in quantities.iteritems():
-                            values = Line.create_values4complete(product_id,
-                                inventory, quantity, uom_id)
-                            for i, fname in enumerate(grouping[1:]):
-                                values[fname] = subkey[i]
-                            to_create.append(values)
-        if to_create:
-            Line.create(to_create)
-        if to_write:
-            Line.write(*to_write)
+    def grouping(cls):
+        return super(Inventory, cls).grouping() + ('party', )
 
 
 class InventoryLine:
@@ -415,10 +352,6 @@ class InventoryLine:
         if self.party:
             rec_name += ' - %s' % self.party.rec_name
         return rec_name
-
-    @property
-    def unique_key(self):
-        return super(InventoryLine, self).unique_key + (self.party,)
 
     def get_move(self):
         move = super(InventoryLine, self).get_move()
