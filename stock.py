@@ -192,14 +192,11 @@ class Move:
         if remove_party_grouping:
             new_quantities = {}
             for key, quantity in quantities.iteritems():
+                new_quantities.setdefault(key[:-1], 0.)
                 if key[-1] is not None:
                     # party quantity. ignore
                     continue
-                parent_key = ()
-                for key_item in key[:-2]:
-                    parent_key = parent_key + (key_item, )
-                    new_quantities.setdefault(parent_key, {})
-                new_quantities[key[:-1]] = quantity
+                new_quantities[key[:-1]] += quantity
             quantities = new_quantities
         return quantities
 
