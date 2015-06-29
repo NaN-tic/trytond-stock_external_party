@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from decimal import Decimal
@@ -48,7 +47,6 @@ class TestCase(unittest.TestCase):
                         'name': 'Test products_by_location',
                         }])
             kg, = self.uom.search([('name', '=', 'Kilogram')])
-            g, = self.uom.search([('name', '=', 'Gram')])
             template, = self.template.create([{
                         'name': 'Test products_by_location',
                         'type': 'goods',
@@ -79,7 +77,7 @@ class TestCase(unittest.TestCase):
             self.assertEqual(party.customer_location, customer)
             self.assertEqual(party.supplier_location, supplier)
 
-            #Recieve products from customer
+            # Recieve products from customer
             move, = self.move.create([{
                         'product': product.id,
                         'uom': kg.id,
@@ -97,7 +95,7 @@ class TestCase(unittest.TestCase):
                 party = self.party(party.id)
                 self.assertEqual(party.quantity, 5.0)
 
-            #Send products to customer another time
+            # Send products to customer another time
             move, = self.move.create([{
                         'product': product.id,
                         'uom': kg.id,
@@ -122,7 +120,7 @@ class TestCase(unittest.TestCase):
                         'moves': [('add', [move])],
                         }])
 
-            #Test that party is written to moves
+            # Test that party is written to moves
             self.shipment.wait([shipment])
             move = self.move(move.id)
             self.assertEqual(move.party_used, party)
