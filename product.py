@@ -11,10 +11,10 @@ from trytond.wizard import Wizard, StateView, StateAction, Button
 __all__ = ['Template', 'TemplateOwnerParty',
     'Product', 'ProductByPartyStart', 'ProductByParty',
     ]
-__metaclass__ = PoolMeta
 
 
 class Template:
+    __metaclass__ = PoolMeta
     __name__ = 'product.template'
 
     may_belong_to_party = fields.Boolean('May belong to party', states={
@@ -37,6 +37,7 @@ class TemplateOwnerParty(ModelSQL):
 
 
 class Product:
+    __metaclass__ = PoolMeta
     __name__ = 'product.product'
 
     @classmethod

@@ -10,12 +10,11 @@ __all__ = ['Party', 'Location',
     'Move', 'ShipmentOut', 'ShipmentExternal',
     'Period', 'PeriodCacheParty',
     'Inventory', 'InventoryLine']
-__metaclass__ = PoolMeta
 
 
-class Party(object, StockMixin):
-    __name__ = 'party.party'
+class Party(StockMixin):
     __metaclass__ = PoolMeta
+    __name__ = 'party.party'
     quantity = fields.Function(fields.Float('Quantity'), 'get_quantity',
         searcher='search_quantity')
     forecast_quantity = fields.Function(fields.Float('Forecast Quantity'),
@@ -49,6 +48,7 @@ class Party(object, StockMixin):
 
 
 class Location:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.location'
 
     @classmethod
@@ -68,6 +68,7 @@ class Location:
 
 
 class Move:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.move'
     party = fields.Many2One('party.party', 'Party')
     party_used = fields.Function(fields.Many2One('party.party', 'Party',
@@ -202,6 +203,7 @@ class Move:
 
 
 class ShipmentOut:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.shipment.out'
 
     def _get_inventory_move(self, move):
@@ -212,6 +214,7 @@ class ShipmentOut:
 
 
 class ShipmentExternal:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.shipment.external'
 
     @classmethod
@@ -232,6 +235,7 @@ class ShipmentExternal:
 
 
 class Period:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.period'
     party_caches = fields.One2Many('stock.period.cache.party', 'period',
         'Party Caches', readonly=True)
@@ -268,6 +272,7 @@ class PeriodCacheParty(ModelSQL, ModelView):
 
 
 class Inventory:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.inventory'
 
     @classmethod
@@ -276,6 +281,7 @@ class Inventory:
 
 
 class InventoryLine:
+    __metaclass__ = PoolMeta
     __name__ = 'stock.inventory.line'
     party = fields.Many2One('party.party', 'Party')
 
