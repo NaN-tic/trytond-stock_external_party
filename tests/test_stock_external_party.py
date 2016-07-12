@@ -1,119 +1,99 @@
-# The COPYRIGHT file at the top level of this repository contains the full
-# copyright notices and license terms.
-from decimal import Decimal
+# This file is part of Tryton.  The COPYRIGHT file at the top level of
+# this repository contains the full copyright notices and license terms.
 import datetime
-from dateutil.relativedelta import relativedelta
 import unittest
+from dateutil.relativedelta import relativedelta
+from decimal import Decimal
+
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT, test_view,\
-    test_depends
-from trytond.transaction import Transaction
 from trytond.exceptions import UserError
+from trytond.pool import Pool
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+from trytond.transaction import Transaction
+
+from trytond.modules.company.tests import create_company, set_company
+
 from mock import Mock
 
 
-class TestCase(unittest.TestCase):
+class TestCase(ModuleTestCase):
     'Test module'
+    module = 'stock_external_party'
 
-    def setUp(self):
-        trytond.tests.test_tryton.install_module('stock_external_party')
-        self.template = POOL.get('product.template')
-        self.product = POOL.get('product.product')
-        self.party = POOL.get('party.party')
-        self.category = POOL.get('product.category')
-        self.uom = POOL.get('product.uom')
-        self.location = POOL.get('stock.location')
-        self.move = POOL.get('stock.move')
-        self.shipment = POOL.get('stock.shipment.external')
-        self.company = POOL.get('company.company')
-        self.user = POOL.get('res.user')
-        self.period = POOL.get('stock.period')
-        self.inventory = POOL.get('stock.inventory')
-        self.move.check_origin_types = Mock(return_value=set())
-
-    def test0005views(self):
-        'Test views'
-        test_view('stock_external_party')
-
-    def test0006depends(self):
-        'Test depends'
-        test_depends()
-
+    @with_transaction()
     def test0010stock_external(self):
         'Test stock external'
-        with Transaction().start(DB_NAME, USER,
-                context=CONTEXT) as transaction:
-            category, = self.category.create([{
-                        'name': 'Test products_by_location',
-                        }])
-            kg, = self.uom.search([('name', '=', 'Kilogram')])
-            template, = self.template.create([{
+        pool = Pool()
+        Template = pool.get('product.template')
+        Product = pool.get('product.product')
+        Party = pool.get('party.party')
+        Uom = pool.get('product.uom')
+        Location = pool.get('stock.location')
+        Move = pool.get('stock.move')
+        Shipment = pool.get('stock.shipment.external')
+        Move.check_origin_types = Mock(return_value=set())
+        transaction = Transaction()
+
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+
+            kg, = Uom.search([('name', '=', 'Kilogram')])
+            template, = Template.create([{
                         'name': 'Test products_by_location',
                         'type': 'goods',
                         'list_price': Decimal(0),
                         'cost_price': Decimal(0),
-                        'category': category.id,
                         'cost_price_method': 'fixed',
                         'default_uom': kg.id,
                         }])
-            product, = self.product.create([{
+            product, = Product.create([{
                         'template': template.id,
                         }])
-            supplier, = self.location.search([('code', '=', 'SUP')])
-            customer, = self.location.search([('code', '=', 'CUS')])
-            storage, = self.location.search([('code', '=', 'STO')])
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            currency = company.currency
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+            supplier, = Location.search([('code', '=', 'SUP')])
+            customer, = Location.search([('code', '=', 'CUS')])
+            storage, = Location.search([('code', '=', 'STO')])
 
-            party, = self.party.create([{
+            party, = Party.create([{
                     'name': 'Customer',
                     }])
             self.assertEqual(party.customer_location, customer)
             self.assertEqual(party.supplier_location, supplier)
 
             # Recieve products from customer
-            move, = self.move.create([{
+            move, = Move.create([{
                         'product': product.id,
                         'uom': kg.id,
                         'quantity': 5,
                         'from_location': customer.id,
                         'to_location': storage.id,
-                        'company': company.id,
                         'unit_price': Decimal('1'),
-                        'currency': currency.id,
                         'party_used': party.id,
                         }])
-            self.move.do([move])
+            Move.do([move])
 
             with transaction.set_context(products=[product.id]):
-                party = self.party(party.id)
+                party = Party(party.id)
                 self.assertEqual(party.quantity, 5.0)
 
             # Send products to customer another time
-            move, = self.move.create([{
+            move, = Move.create([{
                         'product': product.id,
                         'uom': kg.id,
                         'quantity': 5,
                         'from_location': storage.id,
                         'to_location': customer.id,
-                        'company': company.id,
                         'unit_price': Decimal('1'),
-                        'currency': currency.id,
                         'party_used': party.id,
                         }])
             with self.assertRaises(UserError):
-                self.move.do([move])
+                Move.do([move])
 
-            self.move.write([move], {'party_used': None})
+            Move.write([move], {'party_used': None})
 
-            shipment, = self.shipment.create([{
-                        'company': company.id,
+            shipment, = Shipment.create([{
                         'party': party.id,
                         'from_location': storage.id,
                         'to_location': customer.id,
@@ -121,25 +101,40 @@ class TestCase(unittest.TestCase):
                         }])
 
             # Test that party is written to moves
-            self.shipment.wait([shipment])
-            move = self.move(move.id)
+            Shipment.wait([shipment])
+            move = Move(move.id)
             self.assertEqual(move.party_used, party)
 
-            self.assertEqual(self.shipment.assign_try([shipment]), True)
-            self.shipment.done([shipment])
+            self.assertEqual(Shipment.assign_try([shipment]), True)
+            Shipment.done([shipment])
 
-            move = self.move(move.id)
+            move = Move(move.id)
             self.assertEqual(move.state, 'done')
 
             with transaction.set_context(products=[product.id]):
-                party = self.party(party.id)
+                party = Party(party.id)
                 self.assertEqual(party.quantity, 0.0)
 
+    @with_transaction()
     def test0020period(self):
         'Test period'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            unit, = self.uom.search([('name', '=', 'Unit')])
-            template, = self.template.create([{
+        pool = Pool()
+        Template = pool.get('product.template')
+        Product = pool.get('product.product')
+        Party = pool.get('party.party')
+        Uom = pool.get('product.uom')
+        Location = pool.get('stock.location')
+        Move = pool.get('stock.move')
+        Period = pool.get('stock.period')
+        Move.check_origin_types = Mock(return_value=set())
+
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+            unit, = Uom.search([('name', '=', 'Unit')])
+            template, = Template.create([{
                         'name': 'Test period',
                         'type': 'goods',
                         'cost_price_method': 'fixed',
@@ -147,21 +142,13 @@ class TestCase(unittest.TestCase):
                         'list_price': Decimal(0),
                         'cost_price': Decimal(0),
                         }])
-            product, = self.product.create([{
+            product, = Product.create([{
                         'template': template.id,
                         }])
-            supplier, = self.location.search([('code', '=', 'SUP')])
-            storage, = self.location.search([('code', '=', 'STO')])
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            currency = company.currency
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+            supplier, = Location.search([('code', '=', 'SUP')])
+            storage, = Location.search([('code', '=', 'STO')])
 
-            party1, party2 = self.party.create([{
+            party1, party2 = Party.create([{
                         'name': 'Party 1',
                         }, {
                         'name': 'Party 2',
@@ -169,7 +156,7 @@ class TestCase(unittest.TestCase):
 
             today = datetime.date.today()
 
-            moves = self.move.create([{
+            moves = Move.create([{
                         'product': product.id,
                         'party': party1.id,
                         'uom': unit.id,
@@ -178,9 +165,7 @@ class TestCase(unittest.TestCase):
                         'to_location': storage.id,
                         'planned_date': today - relativedelta(days=1),
                         'effective_date': today - relativedelta(days=1),
-                        'company': company.id,
                         'unit_price': Decimal('1'),
-                        'currency': currency.id,
                         }, {
                         'product': product.id,
                         'party': party2.id,
@@ -190,9 +175,7 @@ class TestCase(unittest.TestCase):
                         'to_location': storage.id,
                         'planned_date': today - relativedelta(days=1),
                         'effective_date': today - relativedelta(days=1),
-                        'company': company.id,
                         'unit_price': Decimal('1'),
-                        'currency': currency.id,
                         }, {
                         'product': product.id,
                         'party': None,
@@ -202,17 +185,15 @@ class TestCase(unittest.TestCase):
                         'to_location': storage.id,
                         'planned_date': today - relativedelta(days=1),
                         'effective_date': today - relativedelta(days=1),
-                        'company': company.id,
                         'unit_price': Decimal('1'),
-                        'currency': currency.id,
                         }])
-            self.move.do(moves)
+            Move.do(moves)
 
-            period, = self.period.create([{
+            period, = Period.create([{
                         'date': today - relativedelta(days=1),
                         'company': company.id,
                         }])
-            self.period.close([period])
+            Period.close([period])
             self.assertEqual(period.state, 'closed')
 
             quantities = {
@@ -237,12 +218,27 @@ class TestCase(unittest.TestCase):
                 self.assertEqual(party_cache.internal_quantity,
                     quantities[(party_cache.location, party_cache.party)])
 
+    @with_transaction()
     def test0030inventory(self):
         'Test inventory'
-        with Transaction().start(DB_NAME, USER,
-                context=CONTEXT) as transaction:
-            unit, = self.uom.search([('name', '=', 'Unit')])
-            template, = self.template.create([{
+        pool = Pool()
+        Template = pool.get('product.template')
+        Product = pool.get('product.product')
+        Party = pool.get('party.party')
+        Uom = pool.get('product.uom')
+        Location = pool.get('stock.location')
+        Move = pool.get('stock.move')
+        Inventory = pool.get('stock.inventory')
+        Move.check_origin_types = Mock(return_value=set())
+        transaction = Transaction()
+
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+            unit, = Uom.search([('name', '=', 'Unit')])
+            template, = Template.create([{
                         'name': 'Test period',
                         'type': 'goods',
                         'cost_price_method': 'fixed',
@@ -250,29 +246,21 @@ class TestCase(unittest.TestCase):
                         'list_price': Decimal(0),
                         'cost_price': Decimal(0),
                         }])
-            product, = self.product.create([{
+            product, = Product.create([{
                         'template': template.id,
                         }])
-            lost_found, = self.location.search([('type', '=', 'lost_found')])
-            storage, = self.location.search([('code', '=', 'STO')])
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+            lost_found, = Location.search([('type', '=', 'lost_found')])
+            storage, = Location.search([('code', '=', 'STO')])
 
-            party, = self.party.create([{
+            party, = Party.create([{
                         'name': 'Party',
                         }])
 
             with transaction.set_context(products=[product.id]):
-                party = self.party(party.id)
+                party = Party(party.id)
                 self.assertEqual(party.quantity, 0.0)
 
-            inventory, = self.inventory.create([{
-                        'company': company.id,
+            inventory, = Inventory.create([{
                         'location': storage.id,
                         'lost_found': lost_found.id,
                         'date': datetime.date.today(),
@@ -283,19 +271,18 @@ class TestCase(unittest.TestCase):
                                         'uom': unit.id,
                                         }])],
                         }])
-            self.inventory.confirm([inventory])
+            Inventory.confirm([inventory])
 
             with transaction.set_context(products=[product.id]):
-                party = self.party(party.id)
+                party = Party(party.id)
                 self.assertEqual(party.quantity, 5.0)
 
-            inventory, = self.inventory.create([{
-                        'company': company.id,
+            inventory, = Inventory.create([{
                         'location': storage.id,
                         'lost_found': lost_found.id,
                         'date': datetime.date.today(),
                         }])
-            self.inventory.complete_lines([inventory])
+            Inventory.complete_lines([inventory])
             line, = inventory.lines
             self.assertEqual(line.product, product)
             self.assertEqual(line.party, party)
@@ -304,9 +291,5 @@ class TestCase(unittest.TestCase):
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    from trytond.modules.company.tests import test_company
-    for test in test_company.suite():
-        if test not in suite:
-            suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
