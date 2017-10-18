@@ -98,7 +98,7 @@ class Move:
 
     @classmethod
     def search_party_used(cls, name, clause):
-        return [tuple('party',) + tuple(clause[1:])]
+        return [('party',) + tuple(clause[1:])]
 
     def get_party_to_check(self, name):
         '''
