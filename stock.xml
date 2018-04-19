@@ -27,7 +27,6 @@
         <record model="ir.action.act_window" id="act_party_quantity_tree">
             <field name="name">Party</field>
             <field name="res_model">party.party</field>
-            <field name="window_name" eval="True"/>
         </record>
         <record model="ir.action.act_window.view"
                 id="act_party_quantity_tree_view">

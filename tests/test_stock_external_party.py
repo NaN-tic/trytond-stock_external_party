@@ -260,10 +260,12 @@ class TestCase(ModuleTestCase):
                 party = Party(party.id)
                 self.assertEqual(party.quantity, 0.0)
 
+            yesterday = datetime.date.today() - relativedelta(days=1)
+
             inventory, = Inventory.create([{
                         'location': storage.id,
                         'lost_found': lost_found.id,
-                        'date': datetime.date.today(),
+                        'date': yesterday,
                         'lines': [('create', [{
                                         'product': product.id,
                                         'party': party.id,
@@ -283,10 +285,12 @@ class TestCase(ModuleTestCase):
                         'date': datetime.date.today(),
                         }])
             Inventory.complete_lines([inventory])
+            inventory = Inventory(inventory.id)
+
             line, = inventory.lines
             self.assertEqual(line.product, product)
             self.assertEqual(line.party, party)
-            self.assertEqual(line.quantity, 5.0)
+            self.assertEqual(line.expected_quantity, 5.0)
 
 
 def suite():

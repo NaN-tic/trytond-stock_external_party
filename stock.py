@@ -33,11 +33,12 @@ class Party(StockMixin):
                     ('type', '=', 'warehouse')
                     ])
             location_ids = [x.id for x in warehouses]
-        products = None
+        product_ids = None
         if context.get('products'):
-            products = Product.browse(context.get('products'))
-        pbl = cls._get_quantity(parties, name, list(location_ids), products,
-            grouping=('product', 'party'))
+            product_ids =[x.id for x in Product.browse(context.get('products'))]
+
+        pbl = cls._get_quantity(parties, name, list(location_ids),
+            grouping=('product', 'party',), grouping_filter=(product_ids,))
         return pbl
 
     @classmethod
@@ -163,7 +164,7 @@ class Move:
         if 'party' not in grouping and context.get('exclude_party_quantities'):
             new_grouping = grouping[:] + ('party',)
             if grouping_filter is not None:
-                new_grouping_filter = grouping_filter[:] + (None, )
+                new_grouping_filter = grouping_filter[:]
 
         query = super(Move, cls).compute_quantities_query(
             location_ids, with_childs=with_childs, grouping=new_grouping,
@@ -183,7 +184,7 @@ class Move:
         if 'party' not in grouping and context.get('exclude_party_quantities'):
             new_grouping = grouping[:] + ('party',)
             if grouping_filter is not None:
-                new_grouping_filter = grouping_filter[:] + (None, )
+                new_grouping_filter = grouping_filter[:]
             remove_party_grouping = True
 
         quantities = super(Move, cls).compute_quantities(query, location_ids,
