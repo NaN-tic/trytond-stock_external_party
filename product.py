@@ -13,8 +13,7 @@ __all__ = ['Template', 'TemplateOwnerParty',
     ]
 
 
-class Template:
-    __metaclass__ = PoolMeta
+class Template(metaclass=PoolMeta):
     __name__ = 'product.template'
 
     may_belong_to_party = fields.Boolean('May belong to party', states={
@@ -36,8 +35,7 @@ class TemplateOwnerParty(ModelSQL):
         required=True, select=True)
 
 
-class Product:
-    __metaclass__ = PoolMeta
+class Product(metaclass=PoolMeta):
     __name__ = 'product.product'
 
     @classmethod

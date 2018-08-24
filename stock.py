@@ -12,8 +12,7 @@ __all__ = ['Party', 'Location',
     'Inventory', 'InventoryLine']
 
 
-class Party(StockMixin):
-    __metaclass__ = PoolMeta
+class Party(StockMixin, metaclass=PoolMeta):
     __name__ = 'party.party'
     quantity = fields.Function(fields.Float('Quantity'), 'get_quantity',
         searcher='search_quantity')
@@ -48,8 +47,7 @@ class Party(StockMixin):
             grouping=('product', 'party_used'))
 
 
-class Location:
-    __metaclass__ = PoolMeta
+class Location(metaclass=PoolMeta):
     __name__ = 'stock.location'
 
     @classmethod
@@ -68,8 +66,7 @@ class Location:
         return grouping, key
 
 
-class Move:
-    __metaclass__ = PoolMeta
+class Move(metaclass=PoolMeta):
     __name__ = 'stock.move'
     party = fields.Many2One('party.party', 'Party')
     party_used = fields.Function(fields.Many2One('party.party', 'Party',
@@ -193,7 +190,7 @@ class Move:
 
         if remove_party_grouping:
             new_quantities = {}
-            for key, quantity in quantities.iteritems():
+            for key, quantity in quantities.items():
                 new_quantities.setdefault(key[:-1], 0.)
                 if key[-1] is not None:
                     # party quantity. ignore
@@ -203,8 +200,7 @@ class Move:
         return quantities
 
 
-class ShipmentOut:
-    __metaclass__ = PoolMeta
+class ShipmentOut(metaclass=PoolMeta):
     __name__ = 'stock.shipment.out'
 
     def _get_inventory_move(self, move):
@@ -214,8 +210,7 @@ class ShipmentOut:
         return inv_move
 
 
-class ShipmentExternal:
-    __metaclass__ = PoolMeta
+class ShipmentExternal(metaclass=PoolMeta):
     __name__ = 'stock.shipment.external'
 
     @classmethod
@@ -235,8 +230,7 @@ class ShipmentExternal:
         super(ShipmentExternal, cls).wait(shipments)
 
 
-class Period:
-    __metaclass__ = PoolMeta
+class Period(metaclass=PoolMeta):
     __name__ = 'stock.period'
     party_caches = fields.One2Many('stock.period.cache.party', 'period',
         'Party Caches', readonly=True)
@@ -272,8 +266,7 @@ class PeriodCacheParty(ModelSQL, ModelView):
     internal_quantity = fields.Float('Internal Quantity', readonly=True)
 
 
-class Inventory:
-    __metaclass__ = PoolMeta
+class Inventory(metaclass=PoolMeta):
     __name__ = 'stock.inventory'
 
     @classmethod
@@ -281,8 +274,7 @@ class Inventory:
         return super(Inventory, cls).grouping() + ('party', )
 
 
-class InventoryLine:
-    __metaclass__ = PoolMeta
+class InventoryLine(metaclass=PoolMeta):
     __name__ = 'stock.inventory.line'
     party = fields.Many2One('party.party', 'Party')
 
