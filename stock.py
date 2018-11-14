@@ -152,7 +152,8 @@ class Move(metaclass=PoolMeta):
 
     @classmethod
     def compute_quantities_query(cls, location_ids, with_childs=False,
-            grouping=('product',), grouping_filter=None):
+            grouping=('product',), grouping_filter=None,
+            quantity_field='internal_quantity'):
         context = Transaction().context
 
         new_grouping = grouping[:]
