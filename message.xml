@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data group="1">
+      <record model="ir.message" id="required_shipment">
+          <field name="text">Move "%(move)s" has a party defined, so it requires a shipment to be done.</field>
+      </record>
+      <record model="ir.message" id="diferent_party">
+          <field name="text">Can not do Move "%(move)s" because it\'s from party "%(party)s" and you try to send it to party "%(send_party)s".></field>
+      </record>
+</data>
+</tryton>

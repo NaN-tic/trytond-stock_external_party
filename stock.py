@@ -5,6 +5,9 @@ from trytond.pool import Pool, PoolMeta
 from trytond.transaction import Transaction
 from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
+from trytond.i18n import gettext
+from trytond.exceptions import UserError
+
 
 __all__ = ['Party', 'Location',
     'Move', 'ShipmentOut', 'ShipmentExternal',
@@ -76,15 +79,6 @@ class Move(metaclass=PoolMeta):
     party_to_check = fields.Function(fields.Many2One('party.party', 'Party'),
         'get_party_to_check')
 
-    @classmethod
-    def __setup__(cls):
-        super(Move, cls).__setup__()
-        cls._error_messages.update({
-                'required_shipment': ('Move "%s" has a party defined, so it'
-                    ' requires a shipment to be done.'),
-                'diferent_party': ('Can not do Move "%s" because it\'s '
-                    'from party "%s" and you try to send it to party "%s".'),
-                })
 
     @fields.depends('party')
     def on_change_with_party_used(self, name=None):
@@ -108,7 +102,9 @@ class Move(metaclass=PoolMeta):
         If no shipment an error is raised.
         '''
         if not self.shipment:
-            self.raise_user_error('required_shipment', self.rec_name)
+            raise UserError(gettext(
+                'stock_external_party.required_shipment',
+                move=self.rec_name))
         for name in ('customer', 'supplier', 'party'):
             if hasattr(self.shipment, name):
                 return getattr(self.shipment, name).id
@@ -145,10 +141,11 @@ class Move(metaclass=PoolMeta):
             return
         if (self.party_used and self.party_to_check
                 and self.party_used != self.party_to_check):
-            self.raise_user_error('diferent_party', (self.rec_name,
-                    self.party_used.rec_name,
-                    self.party_to_check.rec_name
-                        if self.party_to_check else 'none'))
+            raise UserError(gettext('stock_external_party.diferent_party',
+                move=self.rec_name,
+                party=self.party_used.rec_name,
+                send_party=(self.party_to_check.rec_name if self.party_to_check
+                    else 'none')))
 
     @classmethod
     def compute_quantities_query(cls, location_ids, with_childs=False,
