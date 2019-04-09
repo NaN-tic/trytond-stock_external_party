@@ -1,20 +1,6 @@
-# 
+#
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
-
-msgctxt "error:stock.move:"
-msgid ""
-"Can not do Move \"%s\" because it's from party \"%s\" and you try to send it"
-" to party \"%s\"."
-msgstr ""
-"No se puede realizar el movimiento \"%s\" porqué pertenece al tercero \"%s\""
-" y se esta intentando enviar al tercero \"%s\"."
-
-msgctxt "error:stock.move:"
-msgid "Move \"%s\" has a party defined, so it requires a shipment to be done."
-msgstr ""
-"El movmiento \"%s\" tiene un tercero definido y por lo tanto requiere un "
-"albarán para ser realizado."
 
 msgctxt "field:party.party,forecast_quantity:"
 msgid "Forecast Quantity"
@@ -30,7 +16,15 @@ msgstr "A fecha"
 
 msgctxt "field:product.by_party.start,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
+
+msgctxt "field:product.product,external_owners:"
+msgid "External Owners"
+msgstr "Propietarios externos"
+
+msgctxt "field:product.product,may_belong_to_party:"
+msgid "May belong to party"
+msgstr "Puede pertenecer a un tercero"
 
 msgctxt "field:product.template,external_owners:"
 msgid "External Owners"
@@ -42,15 +36,15 @@ msgstr "Puede pertenecer a un tercero"
 
 msgctxt "field:product.template-owner-party.party,create_date:"
 msgid "Create Date"
-msgstr "Fecha creación"
+msgstr "Fecha de creación"
 
 msgctxt "field:product.template-owner-party.party,create_uid:"
 msgid "Create User"
-msgstr "Usuario creación"
+msgstr "Usuario de creación"
 
 msgctxt "field:product.template-owner-party.party,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:product.template-owner-party.party,party:"
 msgid "Owner"
@@ -61,16 +55,16 @@ msgid "Product"
 msgstr "Producto"
 
 msgctxt "field:product.template-owner-party.party,rec_name:"
-msgid "Name"
+msgid "Record Name"
 msgstr "Nombre"
 
 msgctxt "field:product.template-owner-party.party,write_date:"
 msgid "Write Date"
-msgstr "Fecha modificación"
+msgstr "Fecha de modificación"
 
 msgctxt "field:product.template-owner-party.party,write_uid:"
 msgid "Write User"
-msgstr "Usuario modificación"
+msgstr "Usuario de modificación"
 
 msgctxt "field:stock.inventory.line,party:"
 msgid "Party"
@@ -94,15 +88,15 @@ msgstr "Precalculos por tercero"
 
 msgctxt "field:stock.period.cache.party,create_date:"
 msgid "Create Date"
-msgstr "Fecha creación"
+msgstr "Fecha de creación"
 
 msgctxt "field:stock.period.cache.party,create_uid:"
 msgid "Create User"
-msgstr "Usuario creación"
+msgstr "Usuario de creación"
 
 msgctxt "field:stock.period.cache.party,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:stock.period.cache.party,internal_quantity:"
 msgid "Internal Quantity"
@@ -125,16 +119,16 @@ msgid "Product"
 msgstr "Productos"
 
 msgctxt "field:stock.period.cache.party,rec_name:"
-msgid "Name"
+msgid "Record Name"
 msgstr "Nombre"
 
 msgctxt "field:stock.period.cache.party,write_date:"
 msgid "Write Date"
-msgstr "Fecha modificación"
+msgstr "Fecha de modificación"
 
 msgctxt "field:stock.period.cache.party,write_uid:"
 msgid "Write User"
-msgstr "Usuario modificación"
+msgstr "Usuario de modificación"
 
 msgctxt "help:product.by_party.start,forecast_date:"
 msgid ""
@@ -153,6 +147,21 @@ msgstr "Terceros"
 msgctxt "model:ir.action,name:wizard_product_by_party"
 msgid "Product By Party"
 msgstr "Producto por tercero"
+
+msgctxt "model:ir.message,text:diferent_party"
+msgid ""
+"Can not do Move \"%(move)s\" because it\\'s from party \"%(party)s\" and you"
+" try to send it to party \"%(send_party)s\".>"
+msgstr ""
+"No se puede realizar el movimiento \"%(move)s\" porque es del tercero "
+"\"%(party)s\" e intenta enviarlo al tercero \"%(send_party)s\".>"
+
+msgctxt "model:ir.message,text:required_shipment"
+msgid ""
+"Move \"%(move)s\" has a party defined, so it requires a shipment to be done."
+msgstr ""
+"El movimiento \"%(move)s\" tiene un tercero definido, por lo que requiere "
+"que se realice un envío."
 
 msgctxt "model:product.by_party.start,name:"
 msgid "Product by Party"
