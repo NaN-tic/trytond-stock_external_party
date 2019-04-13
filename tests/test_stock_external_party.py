@@ -139,7 +139,6 @@ class TestCase(ModuleTestCase):
                         'cost_price_method': 'fixed',
                         'default_uom': unit.id,
                         'list_price': Decimal(0),
-                        'cost_price': Decimal(0),
                         }])
             product, = Product.create([{
                         'template': template.id,
@@ -243,7 +242,6 @@ class TestCase(ModuleTestCase):
                         'cost_price_method': 'fixed',
                         'default_uom': unit.id,
                         'list_price': Decimal(0),
-                        'cost_price': Decimal(0),
                         }])
             product, = Product.create([{
                         'template': template.id,
@@ -269,7 +267,6 @@ class TestCase(ModuleTestCase):
                                         'product': product.id,
                                         'party': party.id,
                                         'quantity': 5.0,
-                                        'uom': unit.id,
                                         }])],
                         }])
             Inventory.confirm([inventory])
