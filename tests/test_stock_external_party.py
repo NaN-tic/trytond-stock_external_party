@@ -45,7 +45,6 @@ class TestCase(ModuleTestCase):
                         'name': 'Test products_by_location',
                         'type': 'goods',
                         'list_price': Decimal(0),
-                        'cost_price': Decimal(0),
                         'cost_price_method': 'fixed',
                         'default_uom': kg.id,
                         }])
