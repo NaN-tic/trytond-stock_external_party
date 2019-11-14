@@ -1,3 +1,4 @@
+Version 5.4.0 - 2019-11-14
 Version 5.3.0 - 2019-05-06
 * Allow to change the party related to move
 * Add may_belong_to_party boolean field to product template and relation to
