@@ -261,7 +261,6 @@ class TestCase(ModuleTestCase):
 
             inventory, = Inventory.create([{
                         'location': storage.id,
-                        'lost_found': lost_found.id,
                         'date': yesterday,
                         'lines': [('create', [{
                                         'product': product.id,
@@ -277,7 +276,6 @@ class TestCase(ModuleTestCase):
 
             inventory, = Inventory.create([{
                         'location': storage.id,
-                        'lost_found': lost_found.id,
                         'date': datetime.date.today(),
                         }])
             Inventory.complete_lines([inventory])
