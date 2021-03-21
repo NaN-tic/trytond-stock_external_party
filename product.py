@@ -8,10 +8,6 @@ from trytond.pyson import Eval, PYSONEncoder
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard, StateView, StateAction, Button
 
-__all__ = ['Template', 'TemplateOwnerParty',
-    'Product', 'ProductByPartyStart', 'ProductByParty',
-    ]
-
 
 class Template(metaclass=PoolMeta):
     __name__ = 'product.template'

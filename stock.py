@@ -9,12 +9,6 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError
 
 
-__all__ = ['Party', 'Location',
-    'Move', 'ShipmentOut', 'ShipmentExternal',
-    'Period', 'PeriodCacheParty',
-    'Inventory', 'InventoryLine']
-
-
 class Party(StockMixin, metaclass=PoolMeta):
     __name__ = 'party.party'
     quantity = fields.Function(fields.Float('Quantity'), 'get_quantity',
