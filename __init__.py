@@ -1,26 +1,26 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from trytond.pool import Pool
-from .product import *
-from .stock import *
+from . import product
+from . import stock
 
 
 def register():
     Pool.register(
-        Party,
-        Template,
-        TemplateOwnerParty,
-        Product,
-        ProductByPartyStart,
-        Location,
-        Move,
-        ShipmentOut,
-        ShipmentExternal,
-        Period,
-        PeriodCacheParty,
-        Inventory,
-        InventoryLine,
+        stock.Party,
+        product.Template,
+        product.TemplateOwnerParty,
+        product.Product,
+        product.ProductByPartyStart,
+        stock.Location,
+        stock.Move,
+        stock.ShipmentOut,
+        stock.ShipmentExternal,
+        stock.Period,
+        stock.PeriodCacheParty,
+        stock.Inventory,
+        stock.InventoryLine,
         module='stock_external_party', type_='model')
     Pool.register(
-        ProductByParty,
+        product.ProductByParty,
         module='stock_external_party', type_='wizard')
