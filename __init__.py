@@ -24,3 +24,7 @@ def register():
     Pool.register(
         product.ProductByParty,
         module='stock_external_party', type_='wizard')
+    Pool.register(
+        stock.Lot,
+        depends=['stock_lot'],
+        module='stock_external_party', type_='model')
