@@ -87,8 +87,7 @@ class ProductByParty(Wizard):
             if langs:
                 break
         lang, = langs
-        date = Lang.strftime(context['stock_date_end'],
-            lang.code, lang.date)
+        date = lang.strftime(context['stock_date_end'])
 
         action['name'] += ' - %s (%s) @ %s' % (product.rec_name,
             product.default_uom.rec_name, date)
