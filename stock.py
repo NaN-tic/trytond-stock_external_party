@@ -7,6 +7,7 @@ from trytond.modules.stock.move import STATES, DEPENDS
 from trytond.modules.stock import StockMixin
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
+from trytond.pyson import Eval
 
 
 class Party(StockMixin, metaclass=PoolMeta):
@@ -63,6 +64,34 @@ class Location(metaclass=PoolMeta):
         return grouping, key
 
 
+class Lot(metaclass=PoolMeta):
+    __name__ = 'stock.lot'
+
+    @classmethod
+    def _get_quantity(cls, records, name, location_ids,
+            grouping=('product',), grouping_filter=None, position=-1):
+        if 'party' in Transaction().context:
+            party_id = Transaction().context.get('party')
+            grouping = grouping + ('party',)
+            grouping_filter = grouping_filter + ([], [party_id],)
+            # Must use position = -2 because we want to get the quantity from the
+            # lot key, not the party
+            position = -2
+        with Transaction().set_context(exclude_party_quantities=True):
+            return super()._get_quantity(records, name, location_ids, grouping,
+                grouping_filter, position)
+
+    #@classmethod
+    #def _search_quantity(cls, name, location_ids, domain=None,
+            #grouping=('product',), position=-1):
+        #party_id = Transaction().context.get('party')
+        #if party_id:
+            #grouping = grouping + ('party',)
+            #position = -2
+        #return super()._search_quantity(name, location_ids, domain, grouping,
+            #position)
+
+
 class Move(metaclass=PoolMeta):
     __name__ = 'stock.move'
     party = fields.Many2One('party.party', 'Party')
@@ -72,6 +101,13 @@ class Move(metaclass=PoolMeta):
             searcher='search_party_used')
     party_to_check = fields.Function(fields.Many2One('party.party', 'Party'),
         'get_party_to_check')
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        if hasattr(cls, 'lot'):
+            cls.lot.context['party'] = Eval('party_used', 0)
+            cls.lot.depends.append('party_used')
 
 
     @fields.depends('party')
