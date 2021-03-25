@@ -70,8 +70,10 @@ class Lot(metaclass=PoolMeta):
     @classmethod
     def _get_quantity(cls, records, name, location_ids,
             grouping=('product',), grouping_filter=None, position=-1):
-        if 'party' in Transaction().context:
-            party_id = Transaction().context.get('party')
+        context = Transaction().context
+        # exclude context when party is None o 0
+        if context.get('party'):
+            party_id = context.get('party')
             grouping = grouping + ('party',)
             grouping_filter = grouping_filter + ([], [party_id],)
             # Must use position = -2 because we want to get the quantity from the
@@ -108,7 +110,6 @@ class Move(metaclass=PoolMeta):
         if hasattr(cls, 'lot'):
             cls.lot.context['party'] = Eval('party_used', 0)
             cls.lot.depends.append('party_used')
-
 
     @fields.depends('party')
     def on_change_with_party_used(self, name=None):
