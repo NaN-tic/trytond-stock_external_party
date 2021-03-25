@@ -71,9 +71,9 @@ class Lot(metaclass=PoolMeta):
     def _get_quantity(cls, records, name, location_ids,
             grouping=('product',), grouping_filter=None, position=-1):
         context = Transaction().context
-        # exclude context when party is None o 0
-        if context.get('party'):
-            party_id = context.get('party')
+        party_id = context.get('party')
+        # exclude party grouping when party is None o 0
+        if party_id:
             grouping = grouping + ('party',)
             grouping_filter = grouping_filter + ([], [party_id],)
             # Must use position = -2 because we want to get the quantity from the
