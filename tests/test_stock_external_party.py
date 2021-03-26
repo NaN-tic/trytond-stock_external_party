@@ -114,6 +114,40 @@ class TestCase(ModuleTestCase):
                 party = Party(party.id)
                 self.assertEqual(party.quantity, 0.0)
 
+            # Recieve products from customer
+            move, = Move.create([{
+                        'product': product.id,
+                        'uom': kg.id,
+                        'quantity': 5,
+                        'from_location': customer.id,
+                        'to_location': storage.id,
+                        'unit_price': Decimal('1'),
+                        'party_used': party.id,
+                        }])
+            Move.do([move])
+            # Recieve products from supplier
+            move, = Move.create([{
+                        'product': product.id,
+                        'uom': kg.id,
+                        'quantity': 15,
+                        'from_location': supplier.id,
+                        'to_location': storage.id,
+                        'unit_price': Decimal('1'),
+                        }])
+            Move.do([move])
+
+            with transaction.set_context(locations=[storage.id]):
+                product = Product(product.id)
+                self.assertEqual(party.quantity, 20.0)
+
+            with transaction.set_context(locations=[storage.id], party=customer.id):
+                product = Product(product.id)
+                self.assertEqual(party.quantity, 5.0)
+
+            with transaction.set_context(locations=[storage.id], party=None):
+                product = Product(product.id)
+                self.assertEqual(party.quantity, 15.0)
+
     @with_transaction()
     def test0020period(self):
         'Test period'

@@ -57,8 +57,8 @@ class Location(metaclass=PoolMeta):
     def _quantity_grouping_and_key(cls):
         grouping, key = super(Location, cls)._quantity_grouping_and_key()
 
-        party_id = Transaction().context.get('party')
-        if party_id:
+        if 'party' in Transaction().context:
+            party_id = Transaction().context.get('party')
             grouping = grouping + ('party',)
             key = key + (party_id,)
         return grouping, key
@@ -70,12 +70,10 @@ class Lot(metaclass=PoolMeta):
     @classmethod
     def _get_quantity(cls, records, name, location_ids,
             grouping=('product',), grouping_filter=None, position=-1):
-        context = Transaction().context
-        party_id = context.get('party')
-        # exclude party grouping when party is None o 0
-        if party_id:
+        if 'party' in Transaction().context:
+            party_id = Transaction().context.get('party')
             grouping = grouping + ('party',)
-            grouping_filter = grouping_filter + ([], [party_id],)
+            grouping_filter = grouping_filter + ([], [party_id] if party_id else None,)
             # Must use position = -2 because we want to get the quantity from the
             # lot key, not the party
             position = -2
@@ -202,6 +200,9 @@ class Move(metaclass=PoolMeta):
 
         context = Transaction().context
 
+        print('dins compute_quantities')
+        print(grouping)
+        print(grouping_filter)
         new_grouping = grouping[:]
         new_grouping_filter = (grouping_filter[:]
             if grouping_filter is not None else None)
@@ -212,6 +213,9 @@ class Move(metaclass=PoolMeta):
                 new_grouping_filter = grouping_filter[:]
             remove_party_grouping = True
 
+        print(grouping)
+        print(grouping_filter)
+        print('-------------')
         quantities = super(Move, cls).compute_quantities(query, location_ids,
             with_childs=with_childs, grouping=new_grouping,
             grouping_filter=new_grouping_filter)

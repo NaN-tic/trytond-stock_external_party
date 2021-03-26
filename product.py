@@ -39,6 +39,17 @@ class Product(metaclass=PoolMeta):
         with Transaction().set_context(exclude_party_quantities=True):
             return super(Product, cls).get_cost_value(products, name)
 
+    @classmethod
+    def _get_quantity(cls, records, name, location_ids,
+            grouping=('product',), grouping_filter=None, position=-1):
+        if 'party' in Transaction().context:
+            party_id = Transaction().context.get('party')
+            grouping = grouping + ('party',)
+            grouping_filter = grouping_filter + ([party_id] if party_id else None,)
+        with Transaction().set_context(exclude_party_quantities=True):
+            return super()._get_quantity(records, name, location_ids, grouping,
+                grouping_filter, position)
+
 
 class ProductByPartyStart(ModelView):
     'Product by Party'
