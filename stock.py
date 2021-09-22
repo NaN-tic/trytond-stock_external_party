@@ -114,7 +114,10 @@ class Move(metaclass=PoolMeta):
     @classmethod
     def assign_try(cls, moves, with_childs=True, grouping=('product',)):
         for move in moves:
+            if move.state != 'draft':
+                continue
             move._check_party()
+
         if 'party' not in grouping:
             grouping = grouping + ('party',)
         return super(Move, cls).assign_try(moves, with_childs=with_childs,
